@@ -4,7 +4,7 @@ import (
 	"fmt"
 	// "time"
 
-	"./util"
+	"github.com/phbai/archiver/util"
 )
 /**
 * 创建

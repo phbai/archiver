@@ -2,9 +2,9 @@ package main
 
 import (
 	// "fmt"
-	"time"
+	// "time"
 
-	"./util"
+	"github.com/phbai/archiver/util"
 )
 
 type Data struct {
