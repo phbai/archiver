@@ -45,13 +45,14 @@ func (t *Task) Download() {
 	err := util.DownloadFile("backup/" + filename, t.VideoURL)
 	if err != nil {
 		t.Status = "下载出错"
-		t.IsFinished <- true
 	}
 	fmt.Println(filename + "  \033[32m下载成功\033[0m")
-	t.IsFinished <- true
 }
 
 func (t *Task) Start() {
+	t.Init()
 	t.Parse()
 	t.Download()
+	t.IsFinished <- true
+	close(t.IsFinished)
 }

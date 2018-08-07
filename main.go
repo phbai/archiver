@@ -1,7 +1,8 @@
 package main
 
 import (
-	// "fmt"
+	"time"
+	"fmt"
 	// "time"
 
 	"github.com/phbai/archiver/util"
@@ -37,25 +38,63 @@ type Post struct {
 	HasRead bool `json:"hasRead"`
 }
 
-func main() {
+func getPosts() []Post {
 	url := "https://api.prpr.io/search"
 	Data := &Data{} // or &Foo{}
 	util.GetJson(url, Data)
-	posts := Data.Result.Docs
+	return Data.Result.Docs
+}
 
-	tasks := []Task{}
+func update(posts []Post, lastNamePtr *string) {
+	if (len(posts) > 0) {
+		tasks := []Task{}
+		isBreak := false
+		for _, p := range posts {
+			if (p.Title == *lastNamePtr) {
+				isBreak = true
+				break;
+			}
+			task := &Task{Name: p.Title, URL: p.Link, IsFinished: make(chan bool)}
+			tasks = append(tasks, *task)
+			fmt.Println("执行", task.Name)
+			go task.Start()
+		}
 
+		if !isBreak {
+			firstTask := tasks[0]
+			*lastNamePtr = firstTask.Name
+			fmt.Println("lastName变更为:", *lastNamePtr)
+		}
+		
+	}
+	time.Sleep(30 * time.Second)
+	fmt.Println()
+}
+/**
+* 循环 判断是否有新的post 如果有则插入queue
+* oldPosts  []
+* newPosts  [{}, {}, {}, {}]
+*/
+func main() {
+
+	lastName := "lastName"
+	lastNamePtr := &lastName
 	// go util.Spinner(100 * time.Millisecond, "正在下载所有文件")
 
-	for _, v := range posts[0:4] {
-		task := &Task{Name: v.Title, URL: v.Link}
-		tasks = append(tasks, *task)
-		go task.Start()
+	// for _, v := range posts[0:2] {
+	// 	task := &Task{Name: v.Title, URL: v.Link, IsFinished: make(chan bool)}
+	// 	tasks = append(tasks, *task)
+	// 	// go task.Start()
+	// }
+	
+	for {
+		posts := getPosts()
+		update(posts, lastNamePtr)
 	}
+	// for _, t := range tasks {
+	// 	<- t.IsFinished
+	// }
 
-	for _, t := range tasks {
-		<- t.IsFinished
-	}
 	// fileUrl := "https://s3.didiyunapi.com/marisa/3-3.mp4"
 
 	// go util.Spinner(100 * time.Millisecond, "正在下载" + fileUrl)
